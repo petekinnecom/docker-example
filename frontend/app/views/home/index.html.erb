@@ -1,0 +1,8 @@
+<% begin %>
+  <%= javascript_pack_tag 'application' %>
+  <% rescue %>
+<% end %>
+
+<p><input id="dbCheckbox" type="checkbox" disabled="disabled" <%= @db_connected ? "checked" : "" %>>Database</p>
+<p><input id="jsCheckbox" type="checkbox" disabled="disabled">Webpack</p>
+<p><input id="tpCheckbox" type="checkbox" disabled="disabled" <%= @tp_connected ? "checked" : "" %>>API connected</p>
