@@ -1,0 +1,52 @@
+version: '3.3'
+services:
+  base: &base
+    image: frontend_test
+    depends_on:
+      - mysql
+    volumes:
+      - "./frontend/bin:/home/code/bin"
+      - "./frontend/test:/home/code/test"
+    environment:
+      DB_HOST: mysql
+      API_HOST: 'api:3001'
+      SELENIUM_REMOTE_HOST: selenium
+  api:
+    image: api_test
+  mysql:
+    image: percona:5.6
+    environment:
+       MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+  selenium:
+    image: selenium/standalone-firefox-debug:3.12.0
+
+  dev:
+    <<: *base
+    command: tail -f /dev/null
+    ports:
+      - '3000:3000'
+
+  test_unit:
+    <<: *base
+    command: |
+      sh -c ' \
+        cd /home/code && \
+        bin/wait-for-it mysql:3306 && \
+        bundle exec rake db:create db:migrate test \
+      '
+
+  test_selenium:
+    <<: *base
+    command: |
+      sh -c ' \
+        cd /home/code && \
+        bin/wait-for-it mysql:3306 && \
+        bundle exec rake db:create db:migrate && \
+        bin/wait-for-it selenium:4444 && \
+        APP_HOST=`hostname` bundle exec ruby -I test test/system/selenium_test.rb \
+      '
+    depends_on:
+      - mysql
+      - selenium
+      - api
+
